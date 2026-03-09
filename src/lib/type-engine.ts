@@ -1,5 +1,5 @@
-import type { TestPhase, TimeDuration, WordState } from "./types";
 import { StatsTracker } from "./stats-tracker";
+import type { TestPhase, TimeDuration, WordState } from "./types";
 
 function createWordState(word: string): WordState {
   return {
@@ -30,7 +30,11 @@ export class TypeEngine {
   /** Replace word reference so React.memo detects the change */
   private touchWord(idx: number): void {
     const w = this.words[idx];
-    this.words[idx] = { chars: [...w.chars], extras: [...w.extras], isComplete: w.isComplete };
+    this.words[idx] = {
+      chars: [...w.chars],
+      extras: [...w.extras],
+      isComplete: w.isComplete,
+    };
   }
 
   typeChar(char: string): void {
@@ -40,7 +44,11 @@ export class TypeEngine {
 
     if (ci < word.chars.length) {
       const isCorrect = char === word.chars[ci].expected;
-      word.chars[ci] = { ...word.chars[ci], typed: char, status: isCorrect ? "correct" : "incorrect" };
+      word.chars[ci] = {
+        ...word.chars[ci],
+        typed: char,
+        status: isCorrect ? "correct" : "incorrect",
+      };
       if (isCorrect) this.stats.recordCorrect();
       else this.stats.recordIncorrect();
     } else {
@@ -83,7 +91,11 @@ export class TypeEngine {
       this.currentWordIndex = prevIdx;
       this.currentCharIndex =
         cursorPos === -1 ? prevWord.chars.length : cursorPos;
-      this.words[prevIdx] = { chars: restoredChars, extras: prevWord.extras, isComplete: false };
+      this.words[prevIdx] = {
+        chars: restoredChars,
+        extras: prevWord.extras,
+        isComplete: false,
+      };
       return;
     }
 
@@ -115,7 +127,11 @@ export class TypeEngine {
       return ch;
     });
     for (let i = 0; i < word.extras.length; i++) this.stats.undoExtra();
-    this.words[this.currentWordIndex] = { chars: newChars, extras: [], isComplete: false };
+    this.words[this.currentWordIndex] = {
+      chars: newChars,
+      extras: [],
+      isComplete: false,
+    };
     this.currentCharIndex = 0;
   }
 
@@ -136,7 +152,11 @@ export class TypeEngine {
     });
     for (let i = 0; i < missedChars; i++) this.stats.recordIncorrect();
 
-    this.words[this.currentWordIndex] = { chars: newChars, extras: word.extras, isComplete: true };
+    this.words[this.currentWordIndex] = {
+      chars: newChars,
+      extras: word.extras,
+      isComplete: true,
+    };
     this.currentWordIndex++;
     this.currentCharIndex = 0;
   }

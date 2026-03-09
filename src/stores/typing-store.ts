@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { useShallow } from "zustand/shallow";
-import type { TestPhase, TimeDuration, WordState } from "@/lib/types";
 import { TypeEngine } from "@/lib/type-engine";
+import type { TestPhase, TimeDuration, WordState } from "@/lib/types";
 import { generateWords } from "@/lib/words";
 
 const WORD_COUNT = 200;
@@ -42,7 +42,7 @@ interface TypingStoreState {
 }
 
 // Engine lives outside reactive state — mutated directly
-let engine = new TypeEngine(DEFAULT_DURATION, generateWords(WORD_COUNT));
+const engine = new TypeEngine(DEFAULT_DURATION, generateWords(WORD_COUNT));
 
 export const useTypingStore = create<TypingStoreState>((set, get) => ({
   ...engine.snapshot(),

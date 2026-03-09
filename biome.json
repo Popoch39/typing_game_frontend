@@ -28,6 +28,12 @@
       "react": "recommended"
     }
   },
+  "overrides": [
+    {
+      "includes": ["src/__tests__/**"],
+      "linter": { "enabled": false }
+    }
+  ],
   "assist": {
     "actions": {
       "source": {
