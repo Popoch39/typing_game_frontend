@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { StatsTracker } from "./stats-tracker";
+import { StatsTracker } from "@/lib/stats-tracker";
 
 describe("StatsTracker", () => {
   it("starts at zero", () => {
@@ -108,5 +108,22 @@ describe("StatsTracker", () => {
       extraChars: 0,
       totalKeystrokes: 1,
     });
+  });
+
+  it("returns 100% accuracy when no keystrokes and elapsed > 0", () => {
+    const t = new StatsTracker();
+    const snap = t.getWpm(10);
+    expect(snap.wpm).toBe(0);
+    expect(snap.rawWpm).toBe(0);
+    expect(snap.accuracy).toBe(100);
+  });
+
+  it("includes extras in rawWpm calculation", () => {
+    const t = new StatsTracker();
+    for (let i = 0; i < 25; i++) t.recordCorrect();
+    for (let i = 0; i < 25; i++) t.recordExtra();
+    const snap = t.getWpm(60);
+    expect(snap.wpm).toBe(5);
+    expect(snap.rawWpm).toBe(10);
   });
 });

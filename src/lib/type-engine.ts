@@ -27,6 +27,12 @@ export class TypeEngine {
     this.stats = new StatsTracker();
   }
 
+  /** Replace word reference so React.memo detects the change */
+  private touchWord(idx: number): void {
+    const w = this.words[idx];
+    this.words[idx] = { chars: [...w.chars], extras: [...w.extras], isComplete: w.isComplete };
+  }
+
   typeChar(char: string): void {
     if (this.phase === "finished") return;
     const word = this.words[this.currentWordIndex];
@@ -34,15 +40,15 @@ export class TypeEngine {
 
     if (ci < word.chars.length) {
       const isCorrect = char === word.chars[ci].expected;
-      word.chars[ci].typed = char;
-      word.chars[ci].status = isCorrect ? "correct" : "incorrect";
+      word.chars[ci] = { ...word.chars[ci], typed: char, status: isCorrect ? "correct" : "incorrect" };
       if (isCorrect) this.stats.recordCorrect();
       else this.stats.recordIncorrect();
     } else {
-      word.extras.push(char);
+      word.extras = [...word.extras, char];
       this.stats.recordExtra();
     }
     this.currentCharIndex++;
+    this.touchWord(this.currentWordIndex);
   }
 
   backspace(): void {
@@ -61,72 +67,76 @@ export class TypeEngine {
       if (!hasErrors) return;
 
       let missedChars = 0;
-      for (const ch of prevWord.chars) {
+      const restoredChars = prevWord.chars.map((ch) => {
         if (ch.typed === null && ch.status === "incorrect") {
-          ch.status = "idle";
           missedChars++;
+          return { ...ch, status: "idle" as const };
         }
-      }
+        return ch;
+      });
       for (let i = 0; i < missedChars; i++) this.stats.undoIncorrect();
 
       const cursorPos =
         prevWord.extras.length > 0
           ? prevWord.chars.length + prevWord.extras.length
-          : prevWord.chars.findIndex((ch) => ch.typed === null);
+          : restoredChars.findIndex((ch) => ch.typed === null);
       this.currentWordIndex = prevIdx;
       this.currentCharIndex =
         cursorPos === -1 ? prevWord.chars.length : cursorPos;
-      prevWord.isComplete = false;
+      this.words[prevIdx] = { chars: restoredChars, extras: prevWord.extras, isComplete: false };
       return;
     }
 
     const word = this.words[this.currentWordIndex];
 
     if (ci > word.chars.length) {
-      word.extras.pop();
+      word.extras = word.extras.slice(0, -1);
       this.stats.undoExtra();
     } else {
       const prev = word.chars[ci - 1];
       if (prev.status === "correct") this.stats.undoCorrect();
       else this.stats.undoIncorrect();
-      prev.typed = null;
-      prev.status = "idle";
+      word.chars[ci - 1] = { ...prev, typed: null, status: "idle" };
     }
     this.currentCharIndex--;
+    this.touchWord(this.currentWordIndex);
   }
 
   ctrlBackspace(): void {
     if (this.phase === "finished") return;
     const word = this.words[this.currentWordIndex];
 
-    for (let i = 0; i < this.currentCharIndex && i < word.chars.length; i++) {
-      if (word.chars[i].status === "correct") this.stats.undoCorrect();
-      else if (word.chars[i].status === "incorrect") this.stats.undoIncorrect();
-      word.chars[i].typed = null;
-      word.chars[i].status = "idle";
-    }
+    const newChars = word.chars.map((ch, i) => {
+      if (i < this.currentCharIndex) {
+        if (ch.status === "correct") this.stats.undoCorrect();
+        else if (ch.status === "incorrect") this.stats.undoIncorrect();
+        return { ...ch, typed: null, status: "idle" as const };
+      }
+      return ch;
+    });
     for (let i = 0; i < word.extras.length; i++) this.stats.undoExtra();
-    word.extras.length = 0;
-    word.isComplete = false;
+    this.words[this.currentWordIndex] = { chars: newChars, extras: [], isComplete: false };
     this.currentCharIndex = 0;
   }
 
   nextWord(): void {
     if (this.phase === "finished") return;
     if (this.currentCharIndex === 0) return;
+    if (this.currentWordIndex >= this.words.length - 1) return;
 
     const word = this.words[this.currentWordIndex];
     const missedChars =
       word.chars.length - Math.min(this.currentCharIndex, word.chars.length);
 
-    for (let i = this.currentCharIndex; i < word.chars.length; i++) {
-      if (word.chars[i].status === "idle") {
-        word.chars[i].status = "incorrect";
+    const newChars = word.chars.map((ch, i) => {
+      if (i >= this.currentCharIndex && ch.status === "idle") {
+        return { ...ch, status: "incorrect" as const };
       }
-    }
+      return ch;
+    });
     for (let i = 0; i < missedChars; i++) this.stats.recordIncorrect();
 
-    word.isComplete = true;
+    this.words[this.currentWordIndex] = { chars: newChars, extras: word.extras, isComplete: true };
     this.currentWordIndex++;
     this.currentCharIndex = 0;
   }
@@ -148,16 +158,16 @@ export class TypeEngine {
     this.stats.reset();
   }
 
+  getWpm(elapsed: number): { wpm: number; rawWpm: number; accuracy: number } {
+    return this.stats.getWpm(elapsed);
+  }
+
   snapshot() {
     const statsSnap = this.stats.snapshot();
     return {
       phase: this.phase,
       duration: this.duration,
-      words: this.words.map((w) => ({
-        chars: w.chars.map((c) => ({ ...c })),
-        extras: [...w.extras],
-        isComplete: w.isComplete,
-      })),
+      words: this.words,
       currentWordIndex: this.currentWordIndex,
       currentCharIndex: this.currentCharIndex,
       ...statsSnap,

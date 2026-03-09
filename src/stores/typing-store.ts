@@ -127,7 +127,7 @@ export const useTypingStore = create<TypingStoreState>((set, get) => ({
 
 function selectWpm(s: TypingStoreState) {
   const elapsed = s.duration - s.timeLeft;
-  return engine.stats.getWpm(elapsed);
+  return engine.getWpm(elapsed);
 }
 
 export function useWpm() {

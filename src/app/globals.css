@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+:root {
+  --bg-color: #323437;
+  --text-color: #d1d0c5;
+  --sub-color: #646669;
+  --error-color: #ca4754;
+  --error-extra-color: #7e2a33;
+  --main-color: #e2b714;
+}
+
+@theme inline {
+  --color-background: var(--bg-color);
+  --color-foreground: var(--text-color);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-geist-mono), monospace;
+  margin: 0;
+}
+
+/* Layout */
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.typing-test {
+  width: 100%;
+  max-width: 900px;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Timer */
+.timer-pills {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.timer-pill {
+  background: none;
+  border: none;
+  color: var(--sub-color);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  transition: color 0.15s;
+}
+
+.timer-pill:hover {
+  color: var(--text-color);
+}
+
+.timer-pill.active {
+  color: var(--main-color);
+}
+
+.timer-countdown {
+  text-align: center;
+  font-size: 2rem;
+  color: var(--main-color);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Word Display */
+.word-display-container {
+  position: relative;
+  font-size: 1.5rem;
+  line-height: 40px;
+  user-select: none;
+}
+
+.word-display-inner {
+  display: block;
+  word-wrap: break-word;
+}
+
+.word {
+  display: inline;
+  margin-right: 0.6ch;
+}
+
+.char {
+  color: var(--sub-color);
+}
+
+.char.idle {
+  color: var(--sub-color);
+}
+
+.char.correct {
+  color: var(--text-color);
+}
+
+.char.incorrect {
+  color: var(--error-color);
+}
+
+.char.extra {
+  color: var(--error-extra-color);
+}
+
+/* Caret */
+.caret {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  background: var(--main-color);
+  will-change: transform;
+  z-index: 10;
+  animation: blink 1s step-end infinite;
+  contain: layout style size;
+  transition: transform 100ms linear;
+}
+
+.caret.typing {
+  animation: none;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Live Stats */
+.live-stats {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  color: var(--main-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--sub-color);
+}
+
+/* Results Screen */
+.results-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem 0;
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.result-label {
+  font-size: 1rem;
+  color: var(--sub-color);
+}
+
+.result-value-big {
+  font-size: 4rem;
+  color: var(--main-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.result-value {
+  font-size: 2rem;
+  color: var(--text-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.restart-btn {
+  background: none;
+  border: none;
+  color: var(--sub-color);
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: color 0.15s;
+}
+
+.restart-btn:hover {
+  color: var(--text-color);
+}
